@@ -6,21 +6,23 @@
 #include <L298NX2.h>
 #include <structures.h>
 
-uint8_t carAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+uint8_t broadcastAddress[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 esp_now_peer_info_t peerInfo;
 
 // Create a struct_messages
 CommandMessage command;
 TelemetryMessage telemetry;
 
+const uint8_t ENA_A = 33;
 const uint8_t IN1_A = 12;
 const uint8_t IN2_A = 14;
 
+const uint8_t ENA_B = 25;
 const uint8_t IN1_B = 27;
 const uint8_t IN2_B = 26;
 
 // Initialize both motors
-L298NX2 motors(IN1_A, IN2_A, IN1_B, IN2_B);
+L298NX2 motors(ENA_A, IN1_A, IN2_A, ENA_B, IN1_B, IN2_B);
 
 TaskHandle_t SendTelemetryTaskHandle = NULL;
 
@@ -34,6 +36,9 @@ const int ENCODER_PIN_B = 33; // Change to your actual pin
 
 const int PPR = 20;               // Pulses per revolution
 const float WHEEL_DIAMETER = 6.5; // in cm
+
+uint64_t last_command = 0;
+const uint64_t maxTimeout = 500;
 
 // Interrupt routine (must be in RAM for speed)
 void IRAM_ATTR countPulseA() { pulseCountA++; }
@@ -78,7 +83,7 @@ void SendTelemetryTask(void *parameter) {
     lastTime = currentTime;
 
     esp_err_t result =
-        esp_now_send(carAddress, (uint8_t *)&telemetry, sizeof(telemetry));
+        esp_now_send(broadcastAddress, (uint8_t *)&telemetry, sizeof(telemetry));
 
     if (result != ESP_OK) {
       Serial.println("Error sending the data");
@@ -107,6 +112,8 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     motors.setSpeedB(rightMotorSpeed);
     motors.runB(command.rightMotorDirection ? L298N::FORWARD : L298N::BACKWARD);
   }
+
+  last_command = millis();
 }
 
 void setup() {
@@ -136,7 +143,7 @@ void setup() {
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
   // Register peer
-  memcpy(peerInfo.peer_addr, carAddress, 6);
+  memcpy(peerInfo.peer_addr, broadcastAddress, 6);
   peerInfo.channel = 0;
   peerInfo.encrypt = false;
 
@@ -156,4 +163,8 @@ void setup() {
   );
 }
 
-void loop() {}
+void loop() {
+  if (millis() - last_command >= maxTimeout){
+    motors.stop();
+  }
+}
