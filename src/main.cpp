@@ -13,11 +13,11 @@ esp_now_peer_info_t peerInfo;
 CommandMessage command;
 TelemetryMessage telemetry;
 
-const unsigned int IN1_A = 5;
-const unsigned int IN2_A = 6;
+const uint8_t IN1_A = 12;
+const uint8_t IN2_A = 14;
 
-const unsigned int IN1_B = 7;
-const unsigned int IN2_B = 8;
+const uint8_t IN1_B = 27;
+const uint8_t IN2_B = 26;
 
 // Initialize both motors
 L298NX2 motors(IN1_A, IN2_A, IN1_B, IN2_B);
@@ -113,11 +113,17 @@ void setup() {
   // Initialize Serial Monitor
   Serial.begin(115200);
 
+  pinMode(ENCODER_PIN_A, INPUT_PULLUP);
+  pinMode(ENCODER_PIN_B, INPUT_PULLUP);
+
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), countPulseA, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), countPulseB, RISING);
 
+  
   // Set device as a Wi-Fi Station
   WiFi.mode(WIFI_STA);
+  Serial.println(WiFi.macAddress());
+
 
   // Init ESP-NOW
   if (esp_now_init() != ESP_OK) {
@@ -142,7 +148,7 @@ void setup() {
 
   xTaskCreatePinnedToCore(SendTelemetryTask,        // Task function
                           "SendTelemetryTask",      // Task name
-                          2048,                     // Stack size (bytes)
+                          4096,                     // Stack size (bytes)
                           NULL,                     // Parameters
                           1,                        // Priority
                           &SendTelemetryTaskHandle, // Task handle
