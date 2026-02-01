@@ -17,4 +17,7 @@ typedef struct TelemetryMessage {
     bool rightMotorDirection; // true = forward, false = backwards
     uint16_t rightMotorSpeed; // 0 -100%, 0 = stop
     float trueRightSpeed;
+
+    double lat;
+    double lon;
 } TelemetryMessage;
