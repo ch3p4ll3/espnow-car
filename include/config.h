@@ -13,9 +13,6 @@
 
 #define MAX_TIMEOUT 500     // ms
 
-#define GPS_RX 16
-#define GPS_TX 17
-
 #define GPS_BAUD 9600
 
 #define MUTEX_TIMEOUT 5000

@@ -28,9 +28,6 @@ L298NX2 motors(ENA_A, IN1_A, IN2_A, ENA_B, IN1_B, IN2_B);
 // The TinyGPS++ object
 TinyGPSPlus gps;
 
-// Create an instance of the HardwareSerial class for Serial 2
-HardwareSerial gpsSerial(2);
-
 TaskHandle_t SendTelemetryTaskHandle = NULL;
 TaskHandle_t UpdateGPSPositionTaskHandle = NULL;
 
@@ -76,7 +73,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), countPulseA, RISING);
   attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), countPulseB, RISING);
 
-  gpsSerial.begin(GPS_BAUD, SERIAL_8N1, GPS_RX, GPS_TX);
+  Serial2.begin(GPS_BAUD, SERIAL_8N1);
   Serial.println("Serial 2 started at 9600 baud rate");
   
   // Set device as a Wi-Fi Station

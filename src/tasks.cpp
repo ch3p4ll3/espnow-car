@@ -2,12 +2,14 @@
 
 void UpdateGPSPositionTask(void *parameter) {
   for (;;) {
-    while (gpsSerial.available() > 0) {
-      if (gps.encode(gpsSerial.read())) {
+    while (Serial2.available() > 0) {
+      if (gps.encode(Serial2.read())) {
         if (gps.location.isUpdated()) {
           if (xSemaphoreTake(telemetryMutex, MUTEX_TIMEOUT)){
             telemetry.lat = gps.location.lat();
             telemetry.lon = gps.location.lng();
+
+            Serial.printf("%d, %d\n", telemetry.lat, telemetry.lon);
             xSemaphoreGive(telemetryMutex);
           }
         }
