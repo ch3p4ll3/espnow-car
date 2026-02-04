@@ -8,6 +8,7 @@ void UpdateGPSPositionTask(void *parameter) {
           if (xSemaphoreTake(telemetryMutex, MUTEX_TIMEOUT)){
             telemetry.lat = gps.location.lat();
             telemetry.lon = gps.location.lng();
+            telemetry.gpsSpeed = gps.speed.mps();
 
             Serial.printf("%d, %d\n", telemetry.lat, telemetry.lon);
             xSemaphoreGive(telemetryMutex);
